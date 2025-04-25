@@ -9,7 +9,7 @@ const StartPage = () => {
   };
 
   return (
-    <div className="relative h-full cursor-pointer" onClick={handleClick}>
+    <div className="relative h-full" onClick={handleClick}>
       <img
         src="https://picsum.photos/393/350"
         alt="메인"
