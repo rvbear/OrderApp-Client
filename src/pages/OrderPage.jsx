@@ -1,10 +1,15 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import NavTabs from "../components/Navtabs";
 import Product from "../components/Product";
+import CartButton from "../components/CartButton";
+import { useCart } from "../contexts/CartContext";
 
 const OrderPage = () => {
   const [activeTab, setActiveTab] = useState(0);
+  const { addToCart, getTotalItems } = useCart();
+  const navigate = useNavigate();
 
   const tabs = ["NEW", "커피&음료", "디저트", "샌드위치&디저트"];
 
@@ -46,6 +51,14 @@ const OrderPage = () => {
     },
   ];
 
+  const handleAddToCart = (product) => {
+    addToCart(product);
+  };
+
+  const goToCart = () => {
+    navigate("/cart");
+  };
+
   return (
     <div className="flex flex-col h-screen bg-gray-100">
       <div className="sticky top-0 z-10">
@@ -64,10 +77,14 @@ const OrderPage = () => {
               name={product.name}
               price={product.price}
               isNew={product.isNew}
+              id={product.id}
+              onAddToCart={handleAddToCart}
             />
           ))}
         </div>
       </div>
+
+      <CartButton itemCount={getTotalItems()} onClick={goToCart} />
     </div>
   );
 };

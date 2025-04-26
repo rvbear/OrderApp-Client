@@ -1,23 +1,28 @@
 import React from "react";
 
-const Product = ({ image, name, price, isNew }) => {
+const Product = ({ image, name, price, isNew, id, onAddToCart }) => {
   return (
-    <div className="flex items-center px-3 py-4">
-      <img
-        src={image}
-        alt={name}
-        className="w-28 h-28 object-cover mr-4 rounded-lg"
-      />
-      <div className="flex-1">
-        <div className="flex flex-col items-start mb-1">
-          {isNew && (
-            <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full mr-2">
-              New
-            </span>
-          )}
-          <h3 className="pt-0.5 font-bold">{name}</h3>
+    <div
+      className="px-3 pt-8 pb-3 flex justify-between items-center"
+      onClick={() => onAddToCart({ id, name, price, image })}
+    >
+      <div className="flex">
+        <img
+          src={image}
+          alt={name}
+          className="w-20 h-20 object-cover mr-3 rounded"
+        />
+        <div>
+          <div className="flex flex-col items-start">
+            {isNew && (
+              <span className="bg-red-500 text-white text-xs px-1 rounded mr-1">
+                NEW
+              </span>
+            )}
+            <h3 className="pt-2 font-bold">{name}</h3>
+          </div>
+          <p className="mt-1 font-medium">{price.toLocaleString()}원</p>
         </div>
-        <p className="text-sm font-medium">{price.toLocaleString()}원</p>
       </div>
     </div>
   );
