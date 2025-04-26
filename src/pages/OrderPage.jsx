@@ -11,7 +11,7 @@ const OrderPage = () => {
   const { addToCart, getTotalItems } = useCart();
   const navigate = useNavigate();
 
-  const tabs = ["NEW", "커피&음료", "디저트", "샌드위치&디저트"];
+  const tabs = ["커피&음료", "케이크", "디저트", "샌드위치&샐러드"];
 
   const products = [
     {
