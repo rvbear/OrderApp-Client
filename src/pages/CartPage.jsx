@@ -5,7 +5,7 @@ import CartItem from "../components/CartItem";
 import { useCart } from "../contexts/CartContext";
 
 const CartPage = () => {
-  const { cartItems, updateQuantity, getTotalPrice } = useCart();
+  const { cartItems, updateQuantity, getTotalPrice, getTotalItems } = useCart();
   const navigate = useNavigate();
 
   const handleGoBack = () => {
@@ -46,6 +46,10 @@ const CartPage = () => {
             </div>
 
             <div className="p-4 mt-2">
+              <div className="flex justify-between mb-4">
+                <span className="font-bold">총 메뉴개수</span>
+                <span className="font-bold">{getTotalItems()}개</span>
+              </div>
               <div className="flex justify-between mb-4">
                 <span className="font-bold">총 결제금액</span>
                 <span className="font-bold">
