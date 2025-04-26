@@ -5,6 +5,8 @@ import StartPage from "./pages/StartPage";
 import LoginPage from "./pages/LoginPage";
 import OrderPage from "./pages/OrderPage";
 import CartPage from "./pages/CartPage";
+import OrderOptionPage from "./pages/OrderOptionPage";
+import OrderCompletePage from "./pages/OrderCompletePage";
 
 function App() {
   return (
@@ -14,6 +16,8 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/order" element={<OrderPage />} />
         <Route path="/cart" element={<CartPage />} />
+        <Route path="/order/option" element={<OrderOptionPage />} />
+        <Route path="/order/complete" element={<OrderCompletePage />} />
       </Routes>
     </CartProvider>
   );

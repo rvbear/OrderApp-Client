@@ -63,7 +63,10 @@ const CartPage = () => {
                 >
                   계속 쇼핑하기
                 </button>
-                <button className="flex-1 bg-pink-600 text-white py-3 rounded-lg font-bold">
+                <button
+                  onClick={() => navigate("/order/option")}
+                  className="flex-1 bg-pink-600 text-white py-3 rounded-lg font-bold"
+                >
                   주문하기
                 </button>
               </div>
