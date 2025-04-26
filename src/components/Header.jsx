@@ -1,9 +1,9 @@
 import React from "react";
 
-const Header = (props) => {
+const Header = ({ text, handleMoveToBack }) => {
   return (
     <div className="h-16 flex items-center relative">
-      <button className="absolute left-4" onClick={props.handleMoveToBack}>
+      <button className="absolute left-4" onClick={handleMoveToBack}>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="24"
@@ -18,7 +18,7 @@ const Header = (props) => {
           <path d="M19 12H5M12 19l-7-7 7-7" />
         </svg>
       </button>
-      <div className="flex-1 text-2xl text-center font-bold">{props.text}</div>
+      <div className="flex-1 text-2xl text-center font-bold">{text}</div>
     </div>
   );
 };
