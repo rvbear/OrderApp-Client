@@ -7,6 +7,7 @@ import OrderPage from "./pages/OrderPage";
 import CartPage from "./pages/CartPage";
 import OrderOptionPage from "./pages/OrderOptionPage";
 import OrderCompletePage from "./pages/OrderCompletePage";
+import AdminPage from "./pages/AdminPage";
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
         <Route path="/cart" element={<CartPage />} />
         <Route path="/order/option" element={<OrderOptionPage />} />
         <Route path="/order/complete" element={<OrderCompletePage />} />
+        <Route path="/admin" element={<AdminPage />} />
       </Routes>
     </CartProvider>
   );
