@@ -87,7 +87,7 @@ const ProductTab = () => {
         </div>
         <input
           type="text"
-          className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-yellow-600 focus:border-transparent"
+          className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-pink-600 focus:border-transparent"
           placeholder="상품명으로 검색"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}

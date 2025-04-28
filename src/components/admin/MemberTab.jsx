@@ -4,7 +4,7 @@ import { Search, UserCircle, MoreVertical } from "lucide-react";
 const members = [
   {
     id: 1,
-    userId: "hong",
+    email: "hong@mail.com",
     password: "****",
     name: "홍길동",
     role: "USER",
@@ -12,7 +12,7 @@ const members = [
   },
   {
     id: 2,
-    userId: "lee",
+    email: "lee@mail.com",
     password: "******",
     name: "이순신",
     role: "ADMIN",
@@ -20,7 +20,7 @@ const members = [
   },
   {
     id: 3,
-    userId: "hana",
+    email: "hana@mail.com",
     password: "****",
     name: "김정민",
     role: "USER",
@@ -44,7 +44,7 @@ const MemberTab = () => {
         </div>
         <input
           type="text"
-          className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-yellow-600 focus:border-transparent"
+          className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-pink-600 focus:border-transparent"
           placeholder="이름 또는 아이디로 검색"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -71,7 +71,7 @@ const MemberTab = () => {
                 </div>
                 <div>
                   <div className="font-medium">{member.name}</div>
-                  <div className="text-sm text-gray-500">{member.userId}</div>
+                  <div className="text-sm text-gray-500">{member.email}</div>
                 </div>
               </div>
               <div className="dropdown relative">
