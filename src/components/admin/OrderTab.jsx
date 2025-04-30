@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Search, ShoppingCart, ChevronRight } from "lucide-react";
 
-const orders = [
+const orderList = [
   {
     id: 1,
     customer: "홍길동",
@@ -29,10 +29,11 @@ const orders = [
 ];
 
 const OrderTab = () => {
+  const [orders, setOrders] = useState(orderList);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("전체");
 
-  const statuses = ["전체", ...new Set(orders.map((o) => o.status))];
+  const statuses = ["전체", ...new Set(orderList.map((o) => o.status))];
 
   const filteredOrders = orders.filter(
     (order) =>
@@ -51,6 +52,14 @@ const OrderTab = () => {
       default:
         return "bg-gray-100 text-gray-800";
     }
+  };
+
+  const handleStatusChange = (id, newStatus) => {
+    setOrders((prev) =>
+      prev.map((order) =>
+        order.id === id ? { ...order, status: newStatus } : order
+      )
+    );
   };
 
   return (
@@ -109,13 +118,17 @@ const OrderTab = () => {
                   <div className="text-xs text-gray-500">{order.date}</div>
                 </div>
               </div>
-              <span
-                className={`px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(
+              <select
+                value={order.status}
+                onChange={(e) => handleStatusChange(order.id, e.target.value)}
+                className={`text-xs font-medium rounded-full px-2.5 py-1 ${getStatusColor(
                   order.status
                 )}`}
               >
-                {order.status}
-              </span>
+                <option value="준비중">준비중</option>
+                <option value="배송중">배송중</option>
+                <option value="배송완료">배송완료</option>
+              </select>
             </div>
 
             <div className="border-t border-b border-gray-100 py-3">
