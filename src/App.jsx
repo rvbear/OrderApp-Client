@@ -8,6 +8,8 @@ import CartPage from "./pages/CartPage";
 import OrderOptionPage from "./pages/OrderOptionPage";
 import OrderCompletePage from "./pages/OrderCompletePage";
 import AdminPage from "./pages/AdminPage";
+import OauthPage from "./pages/OauthPage";
+import CallbackPage from "./pages/CallBackPage";
 
 function App() {
   return (
@@ -20,6 +22,8 @@ function App() {
         <Route path="/order/option" element={<OrderOptionPage />} />
         <Route path="/order/complete" element={<OrderCompletePage />} />
         <Route path="/admin" element={<AdminPage />} />
+        <Route path="/oauth/google" element={<OauthPage />} />
+        <Route path="/callback" element={<CallbackPage />} />
       </Routes>
     </CartProvider>
   );
