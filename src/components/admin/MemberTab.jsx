@@ -1,54 +1,30 @@
-import React, { useState } from "react";
-import { Search, UserCircle, MoreVertical, X } from "lucide-react";
-
-const members = [
-  {
-    id: 1,
-    email: "hong@mail.com",
-    password: "****",
-    name: "홍길동",
-    role: "USER",
-    joinDate: "2023-10-10",
-  },
-  {
-    id: 2,
-    email: "lee@mail.com",
-    password: "******",
-    name: "이순신",
-    role: "ADMIN",
-    joinDate: "2023-10-10",
-  },
-  {
-    id: 3,
-    email: "hana@mail.com",
-    password: "****",
-    name: "김정민",
-    role: "USER",
-    joinDate: "2023-10-10",
-  },
-];
+import React, { useState, useEffect } from "react";
+import { Search, UserCircle, X } from "lucide-react";
+import { getUserAll, updateUser, deleteUser } from "../../apis/user";
 
 const MemberTab = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
+  const [members, setMembers] = useState([]);
   const [editedMember, setEditedMember] = useState({
     email: "",
-    name: "",
+    userName: "",
     role: "USER",
   });
 
   const filteredMembers = members.filter(
     (member) =>
-      member.name.includes(searchTerm) || member.email.includes(searchTerm)
+      (member.userName && member.userName.includes(searchTerm)) ||
+      (member.email && member.email.includes(searchTerm))
   );
 
   const openEditModal = (member) => {
     setSelectedMember(member);
     setEditedMember({
       email: member.email,
-      name: member.name,
+      userName: member.userName,
       role: member.role,
     });
     setIsEditModalOpen(true);
@@ -59,20 +35,58 @@ const MemberTab = () => {
     setIsDeleteModalOpen(true);
   };
 
-  const handleEditSubmit = (e) => {
+  useEffect(() => {
+    const getMembers = async () => {
+      try {
+        const data = await getUserAll();
+        setMembers(data.userList);
+      } catch (error) {
+        console.error("회원 리스트를 불러오는데 실패했습니다:", err);
+      }
+    };
+
+    getMembers();
+  }, []);
+
+  const handleEditSubmit = async (e) => {
     if (e) e.preventDefault();
-    // 수정 로직 구현 (실제로는 API 호출 등이 필요)
-    console.log("수정된 회원 정보:", {
-      id: selectedMember.id,
-      ...editedMember,
-    });
-    setIsEditModalOpen(false);
+    try {
+      console.log(editedMember.userName);
+
+      const updatedUser = await updateUser(
+        selectedMember.userId,
+        editedMember.userName,
+        editedMember.role
+      );
+
+      setMembers((prev) =>
+        prev.map((m) =>
+          m.userId === selectedMember.userId
+            ? { ...m, userName: editedMember.userName, role: editedMember.role }
+            : m
+        )
+      );
+
+      console.log("수정 성공:", updatedUser);
+      setIsEditModalOpen(false);
+    } catch (err) {
+      console.error("회원 수정 실패:", err);
+    }
   };
 
-  const handleDelete = () => {
-    // 삭제 로직 구현 (실제로는 API 호출 등이 필요)
-    console.log("삭제된 회원 ID:", selectedMember.id);
-    setIsDeleteModalOpen(false);
+  const handleDelete = async () => {
+    try {
+      const result = await deleteUser(selectedMember.userId);
+
+      setMembers((prev) =>
+        prev.filter((m) => m.userId !== selectedMember.userId)
+      );
+
+      console.log("삭제 성공:", result);
+      setIsDeleteModalOpen(false);
+    } catch (err) {
+      console.error("회원 삭제 실패:", err);
+    }
   };
 
   return (
@@ -100,7 +114,7 @@ const MemberTab = () => {
       <div className="space-y-3">
         {filteredMembers.map((member) => (
           <div
-            key={member.id}
+            key={member.userId}
             className="bg-white rounded-lg border border-gray-200 shadow-sm p-4"
           >
             <div className="flex justify-between items-start">
@@ -109,7 +123,7 @@ const MemberTab = () => {
                   <UserCircle className="h-8 w-8 text-gray-500" />
                 </div>
                 <div>
-                  <div className="font-medium">{member.name}</div>
+                  <div className="font-medium">{member.userName}</div>
                   <div className="text-sm text-gray-500">{member.email}</div>
                 </div>
               </div>
@@ -125,10 +139,6 @@ const MemberTab = () => {
                 >
                   {member.role}
                 </span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-gray-500 font-bold">가입일</span>
-                <span>{member.joinDate}</span>
               </div>
             </div>
 
@@ -177,9 +187,12 @@ const MemberTab = () => {
                   </label>
                   <input
                     type="text"
-                    value={editedMember.name}
+                    value={editedMember.userName}
                     onChange={(e) =>
-                      setEditedMember({ ...editedMember, name: e.target.value })
+                      setEditedMember({
+                        ...editedMember,
+                        userName: e.target.value,
+                      })
                     }
                     className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-pink-600 focus:border-transparent"
                   />
@@ -243,7 +256,9 @@ const MemberTab = () => {
               <p className="text-gray-600">
                 정말 삭제하시겠습니까?
                 <br />
-                <span className="font-medium">{selectedMember.name}</span>{" "}
+                <span className="font-medium">
+                  {selectedMember.userName}
+                </span>{" "}
                 회원의 모든 정보가 삭제됩니다.
               </p>
             </div>

@@ -1,71 +1,12 @@
-import React, { useState } from "react";
-import { Search, Coffee, Package, MoreVertical, Plus, X } from "lucide-react";
-
-const products = [
-  {
-    id: 1,
-    image: "https://picsum.photos/80/80",
-    name: "오트 큐 모",
-    price: 6500,
-    category: "커피&음료",
-  },
-  {
-    id: 2,
-    image: "https://picsum.photos/80/80",
-    name: "애플 망고 주스",
-    price: 6300,
-    category: "커피&음료",
-  },
-  {
-    id: 3,
-    image: "https://picsum.photos/80/80",
-    name: "청귤 스퀘즈",
-    price: 6300,
-    category: "커피&음료",
-  },
-  {
-    id: 4,
-    image: "https://picsum.photos/80/80",
-    name: "아이스 아메리카노",
-    price: 4500,
-    category: "커피&음료",
-  },
-  {
-    id: 5,
-    image: "https://picsum.photos/80/80",
-    name: "달고나 라떼",
-    price: 5800,
-    category: "커피&음료",
-  },
-  {
-    id: 6,
-    image: "https://picsum.photos/80/80",
-    name: "뉴욕 치즈 케이크",
-    price: 6500,
-    category: "디저트",
-  },
-  {
-    id: 7,
-    image: "https://picsum.photos/80/80",
-    name: "초콜릿 크로와상",
-    price: 4800,
-    category: "디저트",
-  },
-  {
-    id: 8,
-    image: "https://picsum.photos/80/80",
-    name: "에그 샌드위치",
-    price: 5500,
-    category: "샌드위치&샐러드",
-  },
-  {
-    id: 9,
-    image: "https://picsum.photos/80/80",
-    name: "치킨 샐러드",
-    price: 7200,
-    category: "샌드위치&샐러드",
-  },
-];
+import React, { useState, useEffect } from "react";
+import { Search, Coffee, Package, Plus, X } from "lucide-react";
+import {
+  getMenu,
+  getMenuAll,
+  createMenu,
+  updateMenu,
+  deleteMenu,
+} from "../../apis/menu";
 
 const ProductTab = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -74,15 +15,18 @@ const ProductTab = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [products, setProducts] = useState([]);
   const [editedProduct, setEditedProduct] = useState({
     name: "",
     category: "",
     price: 0,
+    img: "",
   });
   const [newProduct, setNewProduct] = useState({
     name: "",
-    category: "",
     price: 0,
+    category: "",
+    img: "",
   });
 
   const categories = ["전체", "커피&음료", "디저트", "샌드위치&샐러드"];
@@ -99,6 +43,7 @@ const ProductTab = () => {
       name: product.name,
       category: product.category,
       price: product.price,
+      img: product.img,
     });
     setIsEditModalOpen(true);
   };
@@ -110,33 +55,69 @@ const ProductTab = () => {
 
   const openAddModal = () => {
     setNewProduct({
-      product: "",
-      category: "음료",
+      name: "",
       price: 0,
+      category: "커피&음료",
+      img: "",
     });
     setIsAddModalOpen(true);
   };
 
-  const handleEditSubmit = () => {
-    // 수정 로직 구현 (실제로는 API 호출 등이 필요)
-    console.log("수정된 상품 정보:", {
-      id: selectedOrder.id,
-      ...editedProduct,
-    });
-    setIsEditModalOpen(false);
+  useEffect(() => {
+    const getProducts = async () => {
+      try {
+        const data = await getMenuAll();
+        setProducts(data.menuList);
+      } catch (error) {
+        console.error("메뉴 리스트를 불러오는데 실패했습니다:", err);
+      }
+    };
+
+    getProducts();
+  }, []);
+
+  const handleEditSubmit = async () => {
+    try {
+      await updateMenu(
+        selectedProduct.menuId,
+        editedProduct.name,
+        editedProduct.price,
+        editedProduct.category,
+        editedProduct.img
+      );
+      const updatedList = await getMenuAll();
+      setProducts(updatedList.menuList);
+      setIsEditModalOpen(false);
+    } catch (err) {
+      console.error("상품 수정 실패:", err);
+    }
   };
 
-  const handleDelete = () => {
-    // 삭제 로직 구현 (실제로는 API 호출 등이 필요)
-    console.log("삭제된 상품 ID:", selectedOrder.id);
-    setIsDeleteModalOpen(false);
+  const handleDelete = async () => {
+    try {
+      await deleteMenu(selectedProduct.menuId);
+      const updatedList = await getMenuAll();
+      setProducts(updatedList.menuList);
+      setIsDeleteModalOpen(false);
+    } catch (err) {
+      console.error("상품 삭제 실패:", err);
+    }
   };
 
-  const handleAddSubmit = () => {
-    // 추가 로직 구현 (실제로는 API 호출 등이 필요)
-    const newId = Math.max(...orders.map((o) => o.id)) + 1;
-    console.log("새로운 상품 정보:", { id: newId, ...newProduct });
-    setIsAddModalOpen(false);
+  const handleAddSubmit = async () => {
+    try {
+      await createMenu(
+        newProduct.name,
+        newProduct.price,
+        newProduct.category,
+        newProduct.img
+      );
+      const updatedList = await getMenuAll();
+      setProducts(updatedList.menuList);
+      setIsAddModalOpen(false);
+    } catch (err) {
+      console.error("상품 등록 실패:", err);
+    }
   };
 
   return (
@@ -189,7 +170,7 @@ const ProductTab = () => {
       <div className="space-y-3">
         {filteredProducts.map((product) => (
           <div
-            key={product.id}
+            key={product.menuId}
             className="bg-white rounded-lg border border-gray-200 shadow-sm p-4"
           >
             <div className="flex justify-between items-start">
@@ -268,7 +249,7 @@ const ProductTab = () => {
                     onChange={(e) =>
                       setEditedProduct({
                         ...editedProduct,
-                        product: e.target.value,
+                        name: e.target.value,
                       })
                     }
                     className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-pink-600 focus:border-transparent"
@@ -308,6 +289,23 @@ const ProductTab = () => {
                       setEditedProduct({
                         ...editedProduct,
                         price: parseInt(e.target.value, 10) || 0,
+                      })
+                    }
+                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-pink-600 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    메뉴 이미지
+                  </label>
+                  <input
+                    type="text"
+                    value={editedProduct.img}
+                    onChange={(e) =>
+                      setEditedProduct({
+                        ...editedProduct,
+                        img: e.target.value,
                       })
                     }
                     className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-pink-600 focus:border-transparent"
@@ -391,9 +389,9 @@ const ProductTab = () => {
                   </label>
                   <input
                     type="text"
-                    value={newProduct.product}
+                    value={newProduct.name}
                     onChange={(e) =>
-                      setNewProduct({ ...newProduct, product: e.target.value })
+                      setNewProduct({ ...newProduct, name: e.target.value })
                     }
                     className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-pink-600 focus:border-transparent"
                     placeholder="상품명을 입력하세요"
@@ -434,6 +432,21 @@ const ProductTab = () => {
                     }
                     className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-pink-600 focus:border-transparent"
                     placeholder="0"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    이미지 URL
+                  </label>
+                  <input
+                    type="text"
+                    value={newProduct.img}
+                    onChange={(e) =>
+                      setNewProduct({ ...newProduct, img: e.target.value })
+                    }
+                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-pink-600 focus:border-transparent"
+                    placeholder="이미지 url을 입력하세요"
                   />
                 </div>
               </div>

@@ -1,65 +1,83 @@
-import React, { useState } from "react";
-import { Search, ShoppingCart, ChevronRight } from "lucide-react";
-
-const orderList = [
-  {
-    id: 1,
-    customer: "홍길동",
-    items: "아메리카노 외 2건",
-    total: 15000,
-    status: "배송완료",
-    date: "2023-10-15",
-  },
-  {
-    id: 2,
-    customer: "이순신",
-    items: "카페라떼",
-    total: 5000,
-    status: "준비중",
-    date: "2023-10-16",
-  },
-  {
-    id: 3,
-    customer: "김정민",
-    items: "티라미수 외 1건",
-    total: 11500,
-    status: "배송중",
-    date: "2023-10-16",
-  },
-];
+import React, { useState, useEffect } from "react";
+import { Search, ShoppingCart } from "lucide-react";
+import { getOrderAll, updateOrderState } from "../../apis/order";
+import { getUser } from "../../apis/user";
 
 const OrderTab = () => {
-  const [orders, setOrders] = useState(orderList);
+  const [orders, setOrders] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("전체");
+  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [userNames, setUserNames] = useState({});
 
-  const statuses = ["전체", ...new Set(orderList.map((o) => o.status))];
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const data = await getOrderAll();
 
-  const filteredOrders = orders.filter(
-    (order) =>
-      (statusFilter === "전체" || order.status === statusFilter) &&
-      (order.customer.includes(searchTerm) || order.items.includes(searchTerm))
-  );
+        const uniqueUserIds = [...new Set(data.orderList.map((o) => o.userId))];
+        const userMap = {};
+
+        await Promise.all(
+          uniqueUserIds.map(async (id) => {
+            try {
+              const data = await getUser(id);
+              userMap[id] = data.userInfo.userName;
+            } catch (e) {
+              userMap[id] = "알 수 없음";
+            }
+          })
+        );
+
+        setUserNames(userMap);
+        setOrders(data.orderList);
+      } catch (err) {
+        console.error("주문 리스트를 불러오는데 실패했습니다:", err);
+      }
+    };
+
+    fetchOrders();
+  }, []);
+
+  const statuses = [
+    { id: "ALL", label: "전체" },
+    { id: "READY", label: "준비중" },
+    { id: "FINISH", label: "준비완료" },
+    { id: "END", label: "수령완료" },
+  ];
+
+  const filteredOrders = orders.filter((order) => {
+    const userName = userNames[order.userId] || "";
+    return (
+      (statusFilter === "ALL" || order.state === statusFilter) &&
+      userName.includes(searchTerm)
+    );
+  });
 
   const getStatusColor = (status) => {
     switch (status) {
-      case "배송완료":
+      case "READY":
         return "bg-green-100 text-green-800";
-      case "배송중":
+      case "FINISH":
         return "bg-blue-100 text-blue-800";
-      case "준비중":
+      case "END":
         return "bg-yellow-100 text-yellow-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
   };
 
-  const handleStatusChange = (id, newStatus) => {
-    setOrders((prev) =>
-      prev.map((order) =>
-        order.id === id ? { ...order, status: newStatus } : order
-      )
-    );
+  const handleStatusChange = async (orderId, newState) => {
+    try {
+      const updated = await updateOrderState(orderId, newState);
+
+      setOrders((prev) =>
+        prev.map((order) =>
+          order.orderId === orderId ? { ...order, state: newState } : order
+        )
+      );
+    } catch (error) {
+      console.error("Error updating order state:", error);
+    }
   };
 
   return (
@@ -71,7 +89,7 @@ const OrderTab = () => {
         <input
           type="text"
           className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-pink-600 focus:border-transparent"
-          placeholder="주문자 또는 상품으로 검색"
+          placeholder="주문자로 검색"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
@@ -80,15 +98,15 @@ const OrderTab = () => {
       <div className="flex overflow-x-auto pb-2 mb-4 no-scrollbar">
         {statuses.map((status) => (
           <button
-            key={status}
-            onClick={() => setStatusFilter(status)}
+            key={status.id}
+            onClick={() => setStatusFilter(status.id)}
             className={`px-4 py-1.5 mr-2 rounded-full text-sm whitespace-nowrap ${
-              statusFilter === status
+              statusFilter === status.id
                 ? "bg-pink-600 text-white"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
-            {status}
+            {status.label}
           </button>
         ))}
       </div>
@@ -105,7 +123,7 @@ const OrderTab = () => {
       <div className="space-y-3">
         {filteredOrders.map((order) => (
           <div
-            key={order.id}
+            key={order.orderId}
             className="bg-white rounded-lg border border-gray-200 shadow-sm p-4"
           >
             <div className="flex justify-between items-center mb-3">
@@ -114,34 +132,35 @@ const OrderTab = () => {
                   <ShoppingCart className="h-6 w-6 text-pink-700" />
                 </div>
                 <div>
-                  <div className="font-medium">{order.customer}</div>
-                  <div className="text-xs text-gray-500">{order.date}</div>
+                  <div className="font-medium">
+                    {userNames[order.userId] || "로딩 중..."}
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    {order.orderTime.split("T")[0]}
+                  </div>
                 </div>
               </div>
               <select
-                value={order.status}
-                onChange={(e) => handleStatusChange(order.id, e.target.value)}
+                value={order.state}
+                onChange={(e) =>
+                  handleStatusChange(order.orderId, Number(e.target.value))
+                }
                 className={`text-xs font-medium rounded-full px-2.5 py-1 ${getStatusColor(
-                  order.status
+                  order.state
                 )}`}
               >
-                <option value="준비중">준비중</option>
-                <option value="배송중">배송중</option>
-                <option value="배송완료">배송완료</option>
+                <option value="READY">준비중</option>
+                <option value="FINISH">준비완료</option>
+                <option value="END">수령완료</option>
               </select>
             </div>
 
             <div className="border-t border-b border-gray-100 py-3">
-              <div className="text-sm">{order.items}</div>
+              <div className="text-sm">총 {order.menuNum}개</div>
               <div className="font-bold mt-1 text-pink-800">
-                {order.total.toLocaleString()}원
+                {order.totalPrice.toLocaleString()}원
               </div>
             </div>
-
-            <button className="w-full mt-3 flex justify-center items-center py-2 bg-gray-50 hover:bg-gray-100 rounded-md text-sm font-medium transition-colors">
-              주문 상세 보기
-              <ChevronRight className="h-4 w-4 ml-1" />
-            </button>
           </div>
         ))}
 
