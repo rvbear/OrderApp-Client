@@ -5,16 +5,17 @@ import Header from "../components/Header";
 import OrderOption from "../components/OrderOption";
 import PaymentButton from "../components/PaymentButton";
 import { useCart } from "../contexts/CartContext";
+import { createOrder, getOrderCode } from "../apis/order";
 
 const orderOptions = [
   {
-    id: "for-here",
+    id: 0,
     title: "매장에서 식사",
     description: "매장 내에서 드시고 가실 경우 선택해주세요.",
     icon: <Coffee size={24} />,
   },
   {
-    id: "to-go",
+    id: 1,
     title: "포장해서 가져가기",
     description: "음식을 포장해서 가져가실 경우 선택해주세요.",
     icon: <ShoppingBag size={24} />,
@@ -23,16 +24,36 @@ const orderOptions = [
 
 const OrderOptionPage = () => {
   const [selectedOption, setSelectedOption] = useState(null);
-  const { getTotalPrice } = useCart();
+  const { getTotalPrice, getTotalItems } = useCart();
   const navigate = useNavigate();
 
   const handleGoBack = () => {
     navigate("/cart");
   };
 
-  const handlePayment = () => {
-    // 결제 처리 로직
-    navigate("/order/complete");
+  const handlePayment = async () => {
+    try {
+      const userId = localStorage.getItem("userId");
+      const totalPrice = getTotalPrice();
+      const orderType = selectedOption;
+      const menuNum = getTotalItems();
+
+      const orderResponse = await createOrder(
+        userId,
+        totalPrice,
+        menuNum,
+        orderType
+      );
+      const orderId = orderResponse.orderId;
+
+      const { orderCode } = await getOrderCode(orderId);
+
+      navigate("/order/complete", { state: { orderCode } });
+
+      clearCart();
+    } catch (err) {
+      console.error("결제 실패:", err);
+    }
   };
 
   return (
@@ -60,6 +81,10 @@ const OrderOptionPage = () => {
 
         <div className="bg-white rounded-lg shadow p-4 mb-4">
           <div className="flex justify-between mb-2">
+            <span className="text-gray-600">총 주문수량</span>
+            <span className="font-bold">{getTotalItems()}개</span>
+          </div>
+          <div className="flex justify-between mb-2">
             <span className="text-gray-600">총 결제금액</span>
             <span className="font-bold">
               {getTotalPrice().toLocaleString()}원
@@ -70,7 +95,7 @@ const OrderOptionPage = () => {
 
       <div className="p-4 bg-white border-t">
         <PaymentButton
-          disabled={!selectedOption}
+          disabled={selectedOption !== 0 && selectedOption !== 1}
           onClick={handlePayment}
           totalPrice={getTotalPrice()}
         />

@@ -1,12 +1,52 @@
-import React from "react";
+import React, { useState } from "react";
 import Header from "../components/Header";
 import { useNavigate } from "react-router-dom";
+import { loginUser, getUser } from "../apis/user";
 
 const LoginPage = () => {
+  const [email, setEmail] = useState("");
+  const [passWord, setPassWord] = useState("");
   const navigate = useNavigate();
 
   const handleMoveToBack = () => {
     navigate("/");
+  };
+
+  const handleGoogleLogin = () => {
+    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?
+		client_id=${import.meta.env.VITE_GOOGLE_CLIENT_ID}
+		&redirect_uri=${import.meta.env.VITE_GOOGLE_REDIRECT_URI}
+		&response_type=code
+		&scope=email profile`;
+  };
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+
+    try {
+      const { token, data } = await loginUser(email, passWord);
+      console.log("로그인 성공", data);
+
+      if (token) {
+        localStorage.setItem("token", token);
+      }
+
+      if (data.userId) {
+        localStorage.setItem("userId", data.userId);
+
+        const response = await getUser(data.userId);
+
+        if (response.userInfo.role === "ADMIN") {
+          navigate("/admin");
+        } else if (response.userInfo.role === "USER") {
+          navigate("/order");
+        } else {
+          console.warn("알 수 없는 사용자 권한:", response.userInfo.role);
+        }
+      }
+    } catch (error) {
+      console.error("로그인 실패:", error);
+    }
   };
 
   return (
@@ -23,8 +63,10 @@ const LoginPage = () => {
         <div className="space-y-8">
           <div className="relative">
             <input
-              type="text"
-              placeholder="아이디 입력"
+              type="email"
+              placeholder="이메일 입력"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full border-b border-gray-300 py-3 px-2 outline-none text-sm"
             />
             <button className="absolute right-2 top-3 text-gray-400 bg-gray-100 rounded-full h-6 w-6 flex items-center justify-center text-sm">
@@ -36,6 +78,8 @@ const LoginPage = () => {
             <input
               type="password"
               placeholder="비밀번호 입력"
+              value={passWord}
+              onChange={(e) => setPassWord(e.target.value)}
               className="w-full border-b border-gray-300 py-3 px-2 outline-none text-sm"
             />
             <button className="absolute right-2 top-3 text-gray-400">
@@ -59,7 +103,10 @@ const LoginPage = () => {
         </div>
 
         <div className="pt-10">
-          <button className="w-full bg-black text-white py-4 font-medium">
+          <button
+            className="w-full bg-black text-white py-4 font-medium"
+            onClick={handleLogin}
+          >
             로그인
           </button>
 
@@ -74,6 +121,7 @@ const LoginPage = () => {
           <button
             className="bg-white rounded-full p-3 shadow-md flex items-center justify-center"
             style={{ width: "48px", height: "48px" }}
+            onClick={handleGoogleLogin}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

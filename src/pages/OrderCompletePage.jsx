@@ -1,11 +1,13 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { CheckCircle } from "lucide-react";
 import { useCart } from "../contexts/CartContext";
 
 const OrderCompletePage = () => {
   const navigate = useNavigate();
   const { clearCart } = useCart();
+  const location = useLocation();
+  const code = location.state?.orderCode || "알 수 없음";
 
   const handleGoToHome = () => {
     clearCart();
@@ -19,7 +21,7 @@ const OrderCompletePage = () => {
           <CheckCircle size={80} />
         </div>
         <h1 className="text-2xl font-bold mb-2">주문이 완료되었습니다!</h1>
-        <p className="text-gray-600 mb-8">주문 번호: #A1B2C3</p>
+        <p className="text-gray-600 mb-8">주문 번호: {code}</p>
         <p className="text-gray-600 mb-2">
           주문하신 메뉴는 준비가 완료되면 알림으로 안내드립니다.
         </p>
